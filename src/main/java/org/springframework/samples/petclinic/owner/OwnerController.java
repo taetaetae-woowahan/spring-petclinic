@@ -32,6 +32,8 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.validation.Valid;
@@ -171,6 +173,29 @@ class OwnerController {
 				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
 		mav.addObject(owner);
 		return mav;
+	}
+
+	/**
+	 * API endpoint to retrieve owners who have a pet with the given name using
+	 * cursor-based pagination.
+	 * @param petName the pet name to search for (case-insensitive exact match)
+	 * @param size the number of results per page (default: 10)
+	 * @param cursor the cursor for pagination (optional)
+	 * @return a response containing the list of owners and pagination information
+	 */
+	@GetMapping("/api/owners/by-pet-name")
+	@ResponseBody
+	public OwnersByPetNameResponse getOwnersByPetName(@RequestParam String petName,
+			@RequestParam(defaultValue = "10") int size, @RequestParam(required = false) Integer cursor) {
+		List<Owner> owners = this.owners.findOwnersByPetName(petName, cursor, size + 1);
+
+		boolean hasNext = owners.size() > size;
+		List<Owner> resultOwners = hasNext ? owners.subList(0, size) : owners;
+		Integer nextCursor = hasNext ? resultOwners.get(resultOwners.size() - 1).getId() : null;
+
+		List<OwnerSummary> ownerSummaries = resultOwners.stream().map(OwnerSummary::from).toList();
+
+		return new OwnersByPetNameResponse(ownerSummaries, nextCursor, hasNext);
 	}
 
 }
