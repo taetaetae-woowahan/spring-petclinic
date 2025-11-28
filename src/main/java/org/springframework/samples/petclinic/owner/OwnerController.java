@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.validation.Valid;
@@ -171,6 +172,26 @@ class OwnerController {
 				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
 		mav.addObject(owner);
 		return mav;
+	}
+
+	/**
+	 * API endpoint to retrieve owners by pet type with cursor-based pagination.
+	 * @param petTypeId the pet type id to filter by
+	 * @param cursor the cursor (owner id) for pagination, null for first page
+	 * @param size the page size, default is 20
+	 * @return OwnersByPetTypeResponse containing owners and pagination info
+	 */
+	@GetMapping("/owners/by-pet-type")
+	@ResponseBody
+	public OwnersByPetTypeResponse getOwnersByPetType(@RequestParam Integer petTypeId,
+			@RequestParam(required = false) Integer cursor, @RequestParam(defaultValue = "20") int size) {
+		List<Owner> owners = this.owners.findOwnersByPetType(petTypeId, cursor, PageRequest.of(0, size + 1));
+
+		boolean hasNext = owners.size() > size;
+		List<Owner> resultOwners = hasNext ? owners.subList(0, size) : owners;
+		Integer nextCursor = hasNext ? resultOwners.get(resultOwners.size() - 1).getId() : null;
+
+		return new OwnersByPetTypeResponse(resultOwners, nextCursor, hasNext);
 	}
 
 }
