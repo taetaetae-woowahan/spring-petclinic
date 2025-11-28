@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.validation.Valid;
@@ -171,6 +172,20 @@ class OwnerController {
 				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
 		mav.addObject(owner);
 		return mav;
+	}
+
+	@GetMapping("/api/owners/by-pet-type")
+	@ResponseBody
+	public OwnersByPetTypeResponse getOwnersByPetType(@RequestParam Integer petTypeId,
+			@RequestParam(required = false) Integer cursor, @RequestParam(defaultValue = "20") int size) {
+		int querySize = size + 1;
+		List<OwnerSummary> owners = this.owners.findOwnersByPetTypeWithCursor(petTypeId, cursor, querySize);
+
+		boolean hasNext = owners.size() > size;
+		List<OwnerSummary> result = hasNext ? owners.subList(0, size) : owners;
+		Integer nextCursor = hasNext ? result.get(result.size() - 1).id() : null;
+
+		return new OwnersByPetTypeResponse(result, nextCursor, hasNext);
 	}
 
 }
