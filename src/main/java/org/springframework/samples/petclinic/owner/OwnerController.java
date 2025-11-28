@@ -176,12 +176,11 @@ class OwnerController {
 	}
 
 	/**
-	 * API endpoint to retrieve owners who have a pet with the given name using
-	 * cursor-based pagination.
-	 * @param petName the pet name to search for (case-insensitive exact match)
-	 * @param size the number of results per page (default: 10)
-	 * @param cursor the cursor for pagination (optional)
-	 * @return a response containing the list of owners and pagination information
+	 * Get owners by pet name with cursor pagination.
+	 * @param petName pet name (case-insensitive)
+	 * @param size results per page (default: 10)
+	 * @param cursor pagination cursor (optional)
+	 * @return owners list with pagination info
 	 */
 	@GetMapping("/api/owners/by-pet-name")
 	@ResponseBody

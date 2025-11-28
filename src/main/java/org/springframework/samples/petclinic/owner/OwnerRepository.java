@@ -63,12 +63,11 @@ public interface OwnerRepository extends JpaRepository<Owner, Integer> {
 	Optional<Owner> findById(Integer id);
 
 	/**
-	 * Retrieve {@link Owner}s who have a pet with the given name using cursor-based
-	 * pagination.
-	 * @param petName the pet name to search for (case-insensitive exact match)
-	 * @param cursor the cursor (owner id) for pagination, or null for the first page
-	 * @param limit the maximum number of results to return
-	 * @return a List of matching {@link Owner}s
+	 * Find owners by pet name with cursor-based pagination.
+	 * @param petName pet name (case-insensitive)
+	 * @param cursor owner id for pagination (null for first page)
+	 * @param limit maximum results
+	 * @return list of owners
 	 */
 	@Query("SELECT DISTINCT o FROM Owner o JOIN o.pets p WHERE LOWER(p.name) = LOWER(:petName) AND (:cursor IS NULL OR o.id > :cursor) ORDER BY o.id")
 	List<Owner> findOwnersByPetName(@Param("petName") String petName, @Param("cursor") Integer cursor,
