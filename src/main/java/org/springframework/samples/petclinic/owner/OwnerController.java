@@ -52,8 +52,11 @@ class OwnerController {
 
 	private final OwnerRepository owners;
 
-	public OwnerController(OwnerRepository owners) {
+	private final OwnerService ownerService;
+
+	public OwnerController(OwnerRepository owners, OwnerService ownerService) {
 		this.owners = owners;
+		this.ownerService = ownerService;
 	}
 
 	@InitBinder
@@ -171,6 +174,18 @@ class OwnerController {
 				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
 		mav.addObject(owner);
 		return mav;
+	}
+
+	/**
+	 * Custom handler for displaying owners by pet type.
+	 * @param petTypeId the ID of the pet type
+	 * @return a ModelMap with the model attributes for the view
+	 */
+	@GetMapping("/owners/by-pet-type")
+	public String getOwnersByPetType(@RequestParam("petTypeId") Integer petTypeId, Model model) {
+		List<Owner> ownersList = this.ownerService.findOwnersByPetTypeId(petTypeId);
+		model.addAttribute("owners", ownersList);
+		return "owners/ownersList";
 	}
 
 }
