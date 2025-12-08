@@ -68,6 +68,9 @@ class OwnerControllerTests {
 	@MockitoBean
 	private OwnerRepository owners;
 
+	@MockitoBean
+	private OwnerService ownerService;
+
 	private Owner george() {
 		Owner george = new Owner();
 		george.setId(TEST_OWNER_ID);
@@ -246,6 +249,28 @@ class OwnerControllerTests {
 			.andExpect(status().is3xxRedirection())
 			.andExpect(redirectedUrl("/owners/" + pathOwnerId + "/edit"))
 			.andExpect(flash().attributeExists("error"));
+	}
+
+	@Test
+	void testGetOwnersByPetType() throws Exception {
+		Owner george = george();
+		given(this.ownerService.findOwnersByPetTypeId(1)).willReturn(List.of(george));
+
+		mockMvc.perform(get("/owners/by-pet-type").param("petTypeId", "1"))
+			.andExpect(status().isOk())
+			.andExpect(model().attribute("owners", hasSize(1)))
+			.andExpect(model().attribute("owners", hasItem(hasProperty("lastName", is("Franklin")))))
+			.andExpect(view().name("owners/ownersList"));
+	}
+
+	@Test
+	void testGetOwnersByPetTypeReturnsEmptyList() throws Exception {
+		given(this.ownerService.findOwnersByPetTypeId(999)).willReturn(List.of());
+
+		mockMvc.perform(get("/owners/by-pet-type").param("petTypeId", "999"))
+			.andExpect(status().isOk())
+			.andExpect(model().attribute("owners", hasSize(0)))
+			.andExpect(view().name("owners/ownersList"));
 	}
 
 }

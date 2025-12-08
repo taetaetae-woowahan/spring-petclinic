@@ -15,6 +15,7 @@
  */
 package org.springframework.samples.petclinic.owner;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
@@ -58,5 +59,12 @@ public interface OwnerRepository extends JpaRepository<Owner, Integer> {
 	 * input for id)
 	 */
 	Optional<Owner> findById(Integer id);
+
+	/**
+	 * Retrieve {@link Owner}s from the data store by pet type id.
+	 * @param typeId the pet type id to search for
+	 * @return a List of matching {@link Owner}s (or an empty List if none found)
+	 */
+	List<Owner> findByPetsTypeId(Integer typeId);
 
 }
