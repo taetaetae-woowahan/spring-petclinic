@@ -22,6 +22,7 @@ import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
 
 import jakarta.validation.Valid;
@@ -171,6 +173,33 @@ class OwnerController {
 				"Owner not found with id: " + ownerId + ". Please ensure the ID is correct "));
 		mav.addObject(owner);
 		return mav;
+	}
+
+	/**
+	 * API endpoint to get owners by pet type with cursor-based pagination.
+	 * @param petTypeId the pet type ID
+	 * @param cursor the cursor for pagination (optional)
+	 * @param size the page size (optional, default 10)
+	 * @return ResponseEntity with owners and pagination info
+	 */
+	@GetMapping("/api/owners/by-pet-type/{petTypeId}")
+	public ResponseEntity<OwnersByPetTypeResponse> getOwnersByPetType(
+			@PathVariable Integer petTypeId,
+			@RequestParam(required = false) Integer cursor,
+			@RequestParam(defaultValue = "10") int size) {
+		
+		Pageable pageable = PageRequest.of(0, size + 1);
+		List<Owner> owners = this.owners.findOwnersByPetTypeWithCursor(petTypeId, cursor, pageable);
+		
+		boolean hasNext = owners.size() > size;
+		if (hasNext) {
+			owners = owners.subList(0, size);
+		}
+		
+		Integer nextCursor = hasNext && !owners.isEmpty() ? owners.get(owners.size() - 1).getId() : null;
+		
+		OwnersByPetTypeResponse response = new OwnersByPetTypeResponse(owners, nextCursor, hasNext);
+		return ResponseEntity.ok(response);
 	}
 
 }
