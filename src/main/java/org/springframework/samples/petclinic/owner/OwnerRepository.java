@@ -15,11 +15,14 @@
  */
 package org.springframework.samples.petclinic.owner;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 /**
  * Repository class for <code>Owner</code> domain objects. All method names are compliant
@@ -58,5 +61,18 @@ public interface OwnerRepository extends JpaRepository<Owner, Integer> {
 	 * input for id)
 	 */
 	Optional<Owner> findById(Integer id);
+
+	/**
+	 * Retrieve {@link Owner}s who own pets of a specific type using cursor-based pagination.
+	 * @param petTypeId the pet type ID to search for
+	 * @param cursor the cursor for pagination (owner ID), null for first page
+	 * @param pageable the pagination information
+	 * @return a List of matching {@link Owner}s
+	 */
+	@Query("SELECT DISTINCT o FROM Owner o JOIN o.pets p WHERE p.type.id = :petTypeId " +
+		   "AND (:cursor IS NULL OR o.id > :cursor) ORDER BY o.id")
+	List<Owner> findOwnersByPetTypeWithCursor(@Param("petTypeId") Integer petTypeId, 
+											  @Param("cursor") Integer cursor, 
+											  Pageable pageable);
 
 }
